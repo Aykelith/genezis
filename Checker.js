@@ -75,7 +75,7 @@ export function defaultChecker(defaultValue) {
         }
 
         return undefined;
-    }
+    };
 }
 
 export function requiredChecker(settings = {}) {
@@ -84,7 +84,7 @@ export function requiredChecker(settings = {}) {
             let found = false;
             for (let i=0, length=settings.onlyIfAvailableOneOf.length; i < length; ++i) {
                 if (config[settings.onlyIfAvailableOneOf[i]] !== undefined) {
-                    found = true;
+                    found = true;CheckerError("50", property, value);
                     break;
                 }
             }
@@ -126,7 +126,7 @@ export function createGenerateOptions(additionalRules) {
                 if (settings.shape) {
                     Object.keys(settings.shape).forEach(subproperty => {
                         settings.shape[subproperty]._.forEach(checker => checker(subproperty, value[subproperty], value, checkerSettings));
-                    })
+                    });
                 }
             }])),
             required: (settings) => generateOptions(previousChecks.concat([requiredChecker(settings)])),
@@ -152,7 +152,7 @@ export function createGenerateOptions(additionalRules) {
                 }
             }])),
             boolean: (settings = {}) => generateOptions(previousChecks.concat([booleanChecker(settings)])),
-            genezisConfigType: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
+            GenezisCheckerType: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
                 if (value === undefined) return;
                 if (typeof value != "function") throw new CheckerError(`The property "${property}" with value "${value}" must be a genezis config type`, property, value);
             }])),
@@ -197,10 +197,22 @@ export function createGenerateOptions(additionalRules) {
                 if (countAvailable > 1) throw new CheckerError("18", property, value);
                 if (settings.throwOnAllMissing && countAvailable == 0) throw new CheckerError("19", property, value);
             }])),
+            atLeastOneAvailable: (options, settings = {}) => generateOptions(previousChecks.concat([(property, value, config) => {
+                if (!global.genezis_production) {
+                    if (!options) throw new Error();
+                    if (!Array.isArray(options)) throw new Error();
+                }
+                
+                for (let i=0, length=options.length; i < length; ++i) {
+                    if (config[options[i]]) return true;
+                }
+
+                throw new CheckerError("50", "atLeastOneAvailable");
+            }])),
             ignore: () => generateOptions(previousChecks.concat([() => {}])),
             ...additionalRules(generateOptions, previousChecks)
-        }
-    }
+        };
+    };
 }
 
 export function createChecker(options) {
@@ -211,7 +223,7 @@ export function createChecker(options) {
         Object.keys(settings).forEach(property => {
             settings[property]._.forEach(checker => checker(property, config[property], config, checkerSettings));
         });
-    }
+    };
 
     Object.assign(checker, options);
 
@@ -220,9 +232,9 @@ export function createChecker(options) {
 
 export function makeConfig(additionalRules) {
     return createChecker(createGenerateOptions(additionalRules)());
-}   
+}
 
-let GenezisConfig = makeConfig((generateOptions, previousChecks) => { return {
+let GenezisChecker = makeConfig((generateOptions, previousChecks) => { return {
     rules: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
         if (value === undefined) return;
         if (!Array.isArray(value)) throw new CheckerError(`The property "${property}" with value "${value}" must be an array`, property, value);
@@ -243,18 +255,18 @@ let GenezisConfig = makeConfig((generateOptions, previousChecks) => { return {
             }
         }
 
-        if (settings.rulesPossible) {
+        // if (settings.rulesPossible) {
 
-        }
+        // }
 
-        if (settings.rulesPossibleOnlyOn) {
+        // if (settings.rulesPossibleOnlyOn) {
 
-        }
+        // }
     }]))
-}});
+};});
 
-GenezisConfig.FunctionArguments = {
+GenezisChecker.FunctionArguments = {
     RouterRequestObject: 0
 };
 
-export default GenezisConfig;
+export default GenezisChecker;
