@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Aykelith/genezis/issues"
   },
-  "homepage": "https://github.com/Aykelith/genezis#readme"
+  "homepage": "https://github.com/Aykelith/genezis#readme",
+  "devDependencies": {
+    "benchmark": "^2.1.4"
+  }
 }

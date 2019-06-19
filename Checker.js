@@ -210,7 +210,7 @@ export function createGenerateOptions(additionalRules) {
                 throw new CheckerError("50", "atLeastOneAvailable");
             }])),
             ignore: () => generateOptions(previousChecks.concat([() => {}])),
-            ...additionalRules(generateOptions, previousChecks)
+            ...(additionalRules ? additionalRules(generateOptions, previousChecks) : {})
         };
     };
 }
@@ -234,39 +234,45 @@ export function makeConfig(additionalRules) {
     return createChecker(createGenerateOptions(additionalRules)());
 }
 
-let GenezisChecker = makeConfig((generateOptions, previousChecks) => { return {
-    rules: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
-        if (value === undefined) return;
-        if (!Array.isArray(value)) throw new CheckerError(`The property "${property}" with value "${value}" must be an array`, property, value);
-
-        for (let i=0, length=value.length; i < length; ++i) {
-            if (!value[i].on) throw new CheckerError(`The property "on" at index ${i} of "${property}" is missing`, property, value);
-            if (!Array.isArray(value[i].on)) throw new CheckerError(`The property "on" at index ${i} of "${property}" must be an array`, property, value);
-            if (!value[i].apply) throw new CheckerError(`The property "apply" at index ${i} of "${property}" is missing`, property, value);
-        }
-
-        if (settings.onlyOn) {
-            if (!Array.isArray(settings.onlyOn)) throw new CheckerError(`The property "onlyOn" of "${property}" must be an array`, property, value);
+let GenezisChecker;
+if (global.genezis_checker_disableinproduction && process.env.NODE_ENV == "production") {
+    GenezisChecker = function () {};
+    Object.assign(GenezisChecker, createGenerateOptions()());
+} else {
+    GenezisChecker = makeConfig((generateOptions, previousChecks) => { return {
+        rules: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
+            if (value === undefined) return;
+            if (!Array.isArray(value)) throw new CheckerError(`The property "${property}" with value "${value}" must be an array`, property, value);
 
             for (let i=0, length=value.length; i < length; ++i) {
-                for (let j=0, length2=value[i].on.length; j < length2; ++j) {
-                    if (!settings.onlyOn.includes(value[i].on[j])) throw new CheckerError("20", property, value);
+                if (!value[i].on) throw new CheckerError(`The property "on" at index ${i} of "${property}" is missing`, property, value);
+                if (!Array.isArray(value[i].on)) throw new CheckerError(`The property "on" at index ${i} of "${property}" must be an array`, property, value);
+                if (!value[i].apply) throw new CheckerError(`The property "apply" at index ${i} of "${property}" is missing`, property, value);
+            }
+
+            if (settings.onlyOn) {
+                if (!Array.isArray(settings.onlyOn)) throw new CheckerError(`The property "onlyOn" of "${property}" must be an array`, property, value);
+
+                for (let i=0, length=value.length; i < length; ++i) {
+                    for (let j=0, length2=value[i].on.length; j < length2; ++j) {
+                        if (!settings.onlyOn.includes(value[i].on[j])) throw new CheckerError("20", property, value);
+                    }
                 }
             }
-        }
 
-        // if (settings.rulesPossible) {
+            // if (settings.rulesPossible) {
 
-        // }
+            // }
 
-        // if (settings.rulesPossibleOnlyOn) {
+            // if (settings.rulesPossibleOnlyOn) {
 
-        // }
-    }]))
-};});
+            // }
+        }]))
+    };});
 
-GenezisChecker.FunctionArguments = {
-    RouterRequestObject: 0
-};
+    GenezisChecker.FunctionArguments = {
+        RouterRequestObject: 0
+    };
+}
 
-export default GenezisChecker;
+export default  GenezisChecker;

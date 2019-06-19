@@ -1,12 +1,13 @@
 export default class extends Error {
-    constructor(message, property, value, otherData) {
-        super(message);
+    constructor(type, property, value) {
+        super(`genezis/CheckerError of type ${type} on "${property}":"${value}"`);
 
         this.name = this.constructor.name;
+
+        this.type = type;
         this.property = property;
         this.value = value;
-        this.otherData = otherData;
 
         Error.captureStackTrace(this, this.constructor);
     }
-};
+}
