@@ -235,7 +235,7 @@ export function makeConfig(additionalRules) {
 }
 
 let GenezisChecker;
-if (global.genezis_checker_disableinproduction && process.env.NODE_ENV == "production") {
+if (!global.genezis_checker_nodisableinproduction && process.env.NODE_ENV == "production") {
     GenezisChecker = function () {};
     Object.assign(GenezisChecker, createGenerateOptions()());
 } else {
