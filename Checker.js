@@ -1,4 +1,5 @@
 import CheckerError from "./CheckerError";
+import CheckerErrorTypes from "./CheckerErrorTypes";
 
 export function stringChecker(settings = {}) {
     return (property, value, config, checkerSettings) => {
@@ -9,12 +10,12 @@ export function stringChecker(settings = {}) {
             if (settings.convert) {
                 let converted = Number.parseInt(value);
 
-                if (Number.isNaN(converted)) throw new CheckerError(`The property "${property}" with value "${value}" must be a string`, property, value);
+                if (Number.isNaN(converted)) throw new CheckerError(CheckerErrorTypes.NOT_STRING, property, value);
                 if (!checkerSettings.doNotModify) config[property] = converted;
 
                 return converted;
             } else {
-                throw new CheckerError(`The property "${property}" with value "${value}" must be a string`, property, value);
+                throw new CheckerError(CheckerErrorTypes.NOT_STRING, property, value);
             }
         }
 
@@ -31,12 +32,12 @@ export function integerChecker(settings = {}) {
             if (settings.convert) {
                 let converted = Number.parseInt(value);
 
-                if (Number.isNaN(converted)) throw new CheckerError(`The property "${property}" with value "${value}" must be a number`, property, value);
+                if (Number.isNaN(converted)) throw new CheckerError(CheckerErrorTypes.NOT_INTEGER, property, value);
                 if (!checkerSettings.doNotModify) config[property] = converted;
 
                 return converted;
             } else {
-                throw new CheckerError(`The property "${property}" with value "${value}" must be an integer`, property, value);
+                throw new CheckerError(CheckerErrorTypes.NOT_INTEGER, property, value);
             }
         }
 
@@ -52,14 +53,14 @@ export function booleanChecker(settings = {}) {
 
         if (!isBoolean) {
             if (settings.convert) {
-                if (value === undefined) throw new CheckerError("", property, value);
+                if (value === undefined) throw new CheckerError(CheckerErrorTypes.NOT_BOOLEAN, property, value);
 
                 const converted = value ? true : false;
                 if (!checkerSettings.doNotModify) config[property] = converted;
 
                 return converted;
             } else {
-                throw new CheckerError(`The property "${property}" with value "${value}" must be a boolean`, property, value);
+                throw new CheckerError(CheckerErrorTypes.NOT_BOOLEAN, property, value);
             }
         }
 
@@ -84,7 +85,7 @@ export function requiredChecker(settings = {}) {
             let found = false;
             for (let i=0, length=settings.onlyIfAvailableOneOf.length; i < length; ++i) {
                 if (config[settings.onlyIfAvailableOneOf[i]] !== undefined) {
-                    found = true;CheckerError("50", property, value);
+                    found = true;
                     break;
                 }
             }
@@ -92,18 +93,22 @@ export function requiredChecker(settings = {}) {
             if (!found) return;
         }
 
-        if (value === null || value === undefined) throw new CheckerError(`The property "${property}" is missing but is marked as required`, property, value);
+        if (value === null || value === undefined) throw new CheckerError(CheckerErrorTypes.REQUIRED_BUT_MISSING, property, value);
     };
 }
 
 export function arrayChecker(settings) {
     return (property, value, config, checkerSettings) => {
         if (value === undefined) return;
-        if (!Array.isArray(value)) throw new CheckerError(`The property "${property}" with value "${value}" must be an array`, property, value);
+        if (!Array.isArray(value)) throw new CheckerError(CheckerErrorTypes.NOT_ARRAY, property, value);
     
         if (settings.of) {
             value.forEach((child, index) => {
-                settings.of._[0](`${property}[${index}]`, child, config, checkerSettings);
+                try {
+                    settings.of._.forEach(checker => checker(`${property}[${index}]`, child, config, checkerSettings));
+                } catch (error) {
+                    throw new CheckerError(CheckerErrorTypes.ARRAY_VALUE_FAILED, property, value, error);
+                }
             });
         }
     };
@@ -117,7 +122,7 @@ export function createGenerateOptions(additionalRules) {
             integer: (settings = {}) => generateOptions(previousChecks.concat([integerChecker(settings)])),
             object: (settings = {}) => generateOptions(previousChecks.concat([(property, value, config, checkerSettings) => {
                 if (value === undefined) return;
-                if (typeof value !== "object" || Array.isArray(value)) throw new CheckerError(`The property "${property}" with value "${value}" must be an object`, property, value);
+                if (typeof value !== "object" || Array.isArray(value)) throw new CheckerError(CheckerErrorTypes.NOT_OBJECT, property, value);
     
                 if (settings.valueOfType) {
                     // TODO
@@ -125,7 +130,11 @@ export function createGenerateOptions(additionalRules) {
 
                 if (settings.shape) {
                     Object.keys(settings.shape).forEach(subproperty => {
-                        settings.shape[subproperty]._.forEach(checker => checker(subproperty, value[subproperty], value, checkerSettings));
+                        try {
+                            settings.shape[subproperty]._.forEach(checker => checker(subproperty, value[subproperty], value, checkerSettings));
+                        } catch (error) {
+                            throw new CheckerError(CheckerErrorTypes.OBJECT_SHAPE_FAILED, property, value, error);
+                        }
                     });
                 }
             }])),
@@ -133,44 +142,44 @@ export function createGenerateOptions(additionalRules) {
             array: (settings = {}) => generateOptions(previousChecks.concat([arrayChecker(settings)])),
             function: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {  
                 if (value === undefined) return;
-                if (typeof value != "function") throw new CheckerError(`The property "${property}" must be an function`, property, value);
+                if (typeof value != "function") throw new CheckerError(CheckerErrorTypes.NOT_FUNCTION, property, value);
     
-                if (settings.arguments) {
-                    if (!Array.isArray(settings.arguments)) throw new CheckerError(`The property "${property}.arguments" must be an array`, property, value);
+                // if (settings.arguments) {
+                //     if (!Array.isArray(settings.arguments)) throw new Error(`The property "${property}.arguments" must be an array`);
     
-                    if (!value.GenezisFunctionArguments) {
-                        console.log(`The function "${property}" doesn't have "GenezisFunctionArguments" so can't check the arguments`, property, value);
-                        return;
-                    }
+                //     if (!value.GenezisFunctionArguments) {
+                //         console.log(`The function "${property}" doesn't have "GenezisFunctionArguments" so can't check the arguments`, property, value);
+                //         return;
+                //     }
     
-                    if (!Array.isArray(value.GenezisFunctionArguments)) throw new CheckerError(`The given function for "${property}.GenezisFunctionArguments" is not an array`, property, value);
+                //     if (!Array.isArray(value.GenezisFunctionArguments)) throw new CheckerError(`The given function for "${property}.GenezisFunctionArguments" is not an array`, property, value);
     
-                    if (settings.arguments.length != value.GenezisFunctionArguments.length) throw new CheckerError(`The property "${property}" arguments length are not matching`, property, value);
-                    for (let i=0, length=settings.arguments.length; i < length; ++i) {
-                        if (settings.arguments[i] != value.GenezisFunctionArguments[i]) throw new CheckerError(`The argument number ${i} for property "${property}" doesn't match (${settings.arguments[i]} != ${value.GenezisFunctionArguments[i]})`, property, value);
-                    }
-                }
+                //     if (settings.arguments.length != value.GenezisFunctionArguments.length) throw new CheckerError(`The property "${property}" arguments length are not matching`, property, value);
+                //     for (let i=0, length=settings.arguments.length; i < length; ++i) {
+                //         if (settings.arguments[i] != value.GenezisFunctionArguments[i]) throw new CheckerError(`The argument number ${i} for property "${property}" doesn't match (${settings.arguments[i]} != ${value.GenezisFunctionArguments[i]})`, property, value);
+                //     }
+                // }
             }])),
             boolean: (settings = {}) => generateOptions(previousChecks.concat([booleanChecker(settings)])),
-            GenezisCheckerType: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
-                if (value === undefined) return;
-                if (typeof value != "function") throw new CheckerError(`The property "${property}" with value "${value}" must be a genezis config type`, property, value);
-            }])),
+            // GenezisCheckerType: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
+            //     if (value === undefined) return;
+            //     if (typeof value != "function") throw new CheckerError(`The property "${property}" with value "${value}" must be a genezis config type`, property, value);
+            // }])),
             default: (defaultValue) => generateOptions(previousChecks.concat([defaultChecker(defaultValue)])),
             instanceOf: (instance) => generateOptions(previousChecks.concat([(property, value) => {
                 if (value === undefined) return;
-                if (!(value instanceof instance)) throw new CheckerError("13", property, value);
+                if (!(value instanceof instance)) throw new CheckerError(CheckerErrorTypes.NOT_INSTANCEOF, property, value);
             }])),
             oneOf: (options) => generateOptions(previousChecks.concat([(property, value) => {
                 if (!options) throw new CheckerError("11", property, value);
                 if (value === undefined) return;
-                if (!Array.isArray(options)) throw new CheckerError("", property, value);
+                if (!Array.isArray(options)) throw new Error(`"options" must be an array on property "${property}"`);
 
-                if (!options.includes(value)) throw new CheckerError("", property, value);
+                if (!options.includes(value)) throw new CheckerError(CheckerErrorTypes.NOT_IN_ONEOF, property, value);
             }])),
             or: (options) => generateOptions(previousChecks.concat([(property, value, config, checkerSettings) => {
-                if (!options) throw new CheckerError("12", property, value);
-                if (!Array.isArray(options)) throw new CheckerError("", property, value);
+                if (!options) throw new Error(`"options" must be valid on property "${property}"`);
+                if (!Array.isArray(options)) throw new Error(`"options" must be an array on property "${property}"`);
 
                 for (let i=0, length = options.length; i < length; ++i) {
                     try {
@@ -181,35 +190,35 @@ export function createGenerateOptions(additionalRules) {
                     }
                 }
 
-                throw new CheckerError("", property, value);
+                throw new CheckerError(CheckerErrorTypes.OR_NO_VALID_VALUE, property, value);
             }])),
-            any: (options) => generateOptions(previousChecks.concat([() => {}])),
+            
             onlyOneAvailable: (options, settings = {}) => generateOptions(previousChecks.concat([(property, value, config) => {
-                if (!options) throw new CheckerError("15", property, value);
-                if (!settings) throw new CheckerError("16", property, value);
-                if (!Array.isArray(options)) throw new CheckerError("17", property, value);
+                if (!options) throw new Error(`"options" must be valid on property "${property}"`);
+                if (!Array.isArray(options)) throw new Error(`"options" must be an array on property "${property}"`);
 
                 let countAvailable = 0;
                 options.forEach(option => {
                     if (config[option]) ++countAvailable;
                 });
 
-                if (countAvailable > 1) throw new CheckerError("18", property, value);
-                if (settings.throwOnAllMissing && countAvailable == 0) throw new CheckerError("19", property, value);
+                if (countAvailable > 1) throw new CheckerError(CheckerErrorTypes.MORE_THAN_ONE, property, value);
+                if (settings.throwOnAllMissing && countAvailable == 0) throw new CheckerError(CheckerErrorTypes.ALL_MISSING, property, value);
             }])),
             atLeastOneAvailable: (options, settings = {}) => generateOptions(previousChecks.concat([(property, value, config) => {
-                if (!global.genezis_production) {
-                    if (!options) throw new Error();
-                    if (!Array.isArray(options)) throw new Error();
-                }
+                if (!options) throw new Error(`"options" must be valid on property "${property}"`);
+                if (!Array.isArray(options)) throw new Error(`"options" must be an array on property "${property}"`);
                 
                 for (let i=0, length=options.length; i < length; ++i) {
                     if (config[options[i]]) return true;
                 }
 
-                throw new CheckerError("50", "atLeastOneAvailable");
+                throw new CheckerError(CheckerErrorTypes.NONE_AVAILABLE, "atLeastOneAvailable", options);
             }])),
+
+            any: () => generateOptions(previousChecks.concat([() => {}])),
             ignore: () => generateOptions(previousChecks.concat([() => {}])),
+
             ...(additionalRules ? additionalRules(generateOptions, previousChecks) : {})
         };
     };
@@ -239,40 +248,7 @@ if (!global.genezis_checker_nodisableinproduction && process.env.NODE_ENV == "pr
     GenezisChecker = function () {};
     Object.assign(GenezisChecker, createGenerateOptions()());
 } else {
-    GenezisChecker = makeConfig((generateOptions, previousChecks) => { return {
-        rules: (settings = {}) => generateOptions(previousChecks.concat([(property, value) => {
-            if (value === undefined) return;
-            if (!Array.isArray(value)) throw new CheckerError(`The property "${property}" with value "${value}" must be an array`, property, value);
-
-            for (let i=0, length=value.length; i < length; ++i) {
-                if (!value[i].on) throw new CheckerError(`The property "on" at index ${i} of "${property}" is missing`, property, value);
-                if (!Array.isArray(value[i].on)) throw new CheckerError(`The property "on" at index ${i} of "${property}" must be an array`, property, value);
-                if (!value[i].apply) throw new CheckerError(`The property "apply" at index ${i} of "${property}" is missing`, property, value);
-            }
-
-            if (settings.onlyOn) {
-                if (!Array.isArray(settings.onlyOn)) throw new CheckerError(`The property "onlyOn" of "${property}" must be an array`, property, value);
-
-                for (let i=0, length=value.length; i < length; ++i) {
-                    for (let j=0, length2=value[i].on.length; j < length2; ++j) {
-                        if (!settings.onlyOn.includes(value[i].on[j])) throw new CheckerError("20", property, value);
-                    }
-                }
-            }
-
-            // if (settings.rulesPossible) {
-
-            // }
-
-            // if (settings.rulesPossibleOnlyOn) {
-
-            // }
-        }]))
-    };});
-
-    GenezisChecker.FunctionArguments = {
-        RouterRequestObject: 0
-    };
+    GenezisChecker = makeConfig();
 }
 
 export default  GenezisChecker;
