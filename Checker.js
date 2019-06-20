@@ -19,6 +19,8 @@ export function stringChecker(settings = {}) {
             }
         }
 
+        if (settings.checker) settings.checker(value);
+
         return value;
     };
 }
@@ -168,6 +170,7 @@ export function createGenerateOptions(additionalRules) {
             default: (defaultValue) => generateOptions(previousChecks.concat([defaultChecker(defaultValue)])),
             instanceOf: (instance) => generateOptions(previousChecks.concat([(property, value) => {
                 if (value === undefined) return;
+                if (!instance) throw new Error();
                 if (!(value instanceof instance)) throw new CheckerError(CheckerErrorTypes.NOT_INSTANCEOF, property, value);
             }])),
             oneOf: (options) => generateOptions(previousChecks.concat([(property, value) => {
