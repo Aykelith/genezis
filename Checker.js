@@ -84,11 +84,36 @@ export function defaultChecker(defaultValue) {
 export function requiredChecker(settings = {}) {
     return (property, value, config) => {
         if (settings.onlyIfAvailableOneOf) {
+            if (!Array.isArray(settings.onlyIfAvailableOneOf)) throw new Error("");
+
             let found = false;
             for (let i=0, length=settings.onlyIfAvailableOneOf.length; i < length; ++i) {
                 if (config[settings.onlyIfAvailableOneOf[i]] !== undefined) {
                     found = true;
                     break;
+                }
+            }
+
+            if (!found) return;
+        }
+
+        if (settings.onlyIfExactFieldOf) {
+            if (!Array.isArray(settings.onlyIfExactFieldOf)) {
+                if (typeof settings.onlyIfExactFieldOf !== "object") throw new Error();
+
+                settings.onlyIfExactFieldOf = [ settings.onlyIfExactFieldOf ];
+            }
+
+            let found;
+            for (let i=0, length=settings.onlyIfExactFieldOf.length; i < length; ++i) {
+                const keys = Object.keys(settings.onlyIfExactFieldOf[i]);
+
+                found = true;
+                for (let j=0, length2 = keys.length; j < length2; ++j) {
+                    if (config[keys[j]] !== settings.onlyIfExactFieldOf[i][keys[j]]) {
+                        found = false;
+                        break;
+                    }
                 }
             }
 
@@ -167,7 +192,6 @@ export function createGenerateOptions(additionalRules) {
             //     if (value === undefined) return;
             //     if (typeof value != "function") throw new CheckerError(`The property "${property}" with value "${value}" must be a genezis config type`, property, value);
             // }])),
-            default: (defaultValue) => generateOptions(previousChecks.concat([defaultChecker(defaultValue)])),
             instanceOf: (instance) => generateOptions(previousChecks.concat([(property, value) => {
                 if (value === undefined) return;
                 if (!instance) throw new Error();

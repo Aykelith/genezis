@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 21.06.2019
+
+- deleted the `default` rule because can't be applied on production and can be misleading
+- added `utils/deleteOnProduction` that return `undefined` instead of the first argv in production
+
 ## 19.06.2019
 
 - changed `CheckerError` to throw a 'type' of error instead of an message and now have a general error message;
