@@ -1,6 +1,7 @@
 export default {
     NOT_STRING: "genezis_not_string",
     NOT_INTEGER: "genezis_not_integer",
+    NOT_NUMBER: "genezis_not_number",
     NOT_BOOLEAN: "genezis_not_boolean",
     NOT_OBJECT: "genezis_not_object",
     NOT_ARRAY: "genezis_not_array",

@@ -2,8 +2,9 @@
 
 ## 21.06.2019
 
-- deleted the `default` rule because can't be applied on production and can be misleading
-- added `utils/deleteOnProduction` that return `undefined` instead of the first argv in production
+- deleted the `default` rule because can't be applied on production and can be misleading;
+- added `utils/deleteOnProduction` that return `undefined` instead of the first argv in production;
+- added rule `number`;
 
 ## 19.06.2019
 

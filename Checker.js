@@ -47,6 +47,28 @@ export function integerChecker(settings = {}) {
     };
 }
 
+export function numberChecker(settings = {}) {
+    return (property, value, config, checkerSettings) => {
+        if (value === undefined) return;
+
+        const isNumber = typeof value == "number";
+        if (!isNumber) {
+            if (settings.convert) {
+                let converted = Number.parseFloat(value);
+
+                if (Number.isNaN(converted)) throw new CheckerError(CheckerErrorTypes.NOT_NUMBER, property, value);
+                if (!checkerSettings.doNotModify) config[property] = converted;
+
+                return converted;
+            } else {
+                throw new CheckerError(CheckerErrorTypes.NOT_NUMBER, property, value);
+            }
+        }
+
+        return value;
+    };
+}
+
 export function booleanChecker(settings = {}) {
     return (property, value, config, checkerSettings) => {
         if (value === undefined) return;
@@ -67,17 +89,6 @@ export function booleanChecker(settings = {}) {
         }
 
         return value;
-    };
-}
-
-export function defaultChecker(defaultValue) {
-    return (property, value, config, checkerSettings) => {
-        if (value === undefined) {
-            if (!checkerSettings.doNotModify) config[property] = defaultValue;
-            return defaultValue;
-        }
-
-        return undefined;
     };
 }
 
@@ -147,6 +158,7 @@ export function createGenerateOptions(additionalRules) {
             _: previousChecks,
             string: (settings = {}) => generateOptions(previousChecks.concat([stringChecker(settings)])),
             integer: (settings = {}) => generateOptions(previousChecks.concat([integerChecker(settings)])),
+            number: (settings = {}) => generateOptions(previousChecks.concat([numberChecker(settings)])),
             object: (settings = {}) => generateOptions(previousChecks.concat([(property, value, config, checkerSettings) => {
                 if (value === undefined) return;
                 if (typeof value !== "object" || Array.isArray(value)) throw new CheckerError(CheckerErrorTypes.NOT_OBJECT, property, value);

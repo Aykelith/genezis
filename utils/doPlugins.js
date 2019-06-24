@@ -1,8 +1,24 @@
 export default async (plugins, args, settings) => {
+    let arePluginsArray = Array.isArray(plugins);
+    let _plugins = arePluginsArray ? plugins : Object.values(plugins);
+
+    let answers;
+    let pluginsNames;
+
+    if (arePluginsArray) {
+        answers = [];
+    } else {
+        answers = {};
+        pluginsNames = Object.keys(plugins);
+    }
+
     if (!settings.runParallel) {
-        for (let i=0, length=plugins.length; i < length; ++i) {
+        for (let i=0, length=_plugins.length; i < length; ++i) {
             try {
-                await plugins[i](...args);
+                const answer = await _plugins[i](...args);
+
+                if (arePluginsArray) answers.push(answer);
+                else                 answers[pluginsNames[i]] = answer;
             } catch (error) {
                 if (settings.onError) {
                     if (settings.onError.crashImmediatly) {
@@ -17,5 +33,19 @@ export default async (plugins, args, settings) => {
                 }
             }
         }
+    }
+
+    return answers;
+};
+
+export class PluginError extends Error {
+    constructor(message, originalError) {
+        super(message);
+
+        this.name = this.constructor.name;
+
+        this.originalError = originalError;
+
+        Error.captureStackTrace(this, this.constructor);
     }
 }
