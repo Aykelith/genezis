@@ -43,6 +43,8 @@ export function integerChecker(settings = {}) {
             }
         }
 
+        if (settings.checker) settings.checker(value);
+
         return value;
     };
 }
@@ -268,9 +270,14 @@ export function createChecker(options) {
         if (!config) throw new Error();
         if (!settings) throw new Error();
 
-        Object.keys(settings).forEach(property => {
-            settings[property]._.forEach(checker => checker(property, config[property], config, checkerSettings));
-        });
+        try {
+            Object.keys(settings).forEach(property => {
+                settings[property]._.forEach(checker => checker(property, config[property], config, checkerSettings));
+            });
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     };
 
     Object.assign(checker, options);

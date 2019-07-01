@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 24.06.2019
+
+- added a functionality to `utils/doPlugins` being able to send only the required arguments to the plugins and throws an
+error if not all the required arguments are found(only on `NODE_ENV=development`);
+
 ## 21.06.2019
 
 - deleted the `default` rule because can't be applied on production and can be misleading;

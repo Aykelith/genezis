@@ -1,3 +1,30 @@
+import GenezisChecker from "../Checker";
+
+const isProduction = process.env.NODE_ENV == "production";
+
+const GenezisCheckerSettingsConfig = {
+
+};
+
+export const PLUGIN_ARGS_REQUIREMENTS_KEYWORD = "pluginArgsRequirements";
+
+function constructPluginObjectArgument(plugin, args) {
+    if (!isProduction) {
+        if (!plugin[PLUGIN_ARGS_REQUIREMENTS_KEYWORD]) throw new Error(`The plugin "${plugin.name}" doesn't have the "${PLUGIN_ARGS_REQUIREMENTS_KEYWORD}"`);
+
+        plugin[PLUGIN_ARGS_REQUIREMENTS_KEYWORD].forEach(requirement => {
+            if (args[requirement] === undefined) throw new Error(`The requirement "${requirement}" of plugin "${plugin.name}" is not given in the plugin arguments`);
+        });
+    }
+
+    let pluginArgs = {};
+    plugin[PLUGIN_ARGS_REQUIREMENTS_KEYWORD].forEach(requirement => {
+        pluginArgs[requirement] = args[requirement];
+    });
+
+    return pluginArgs;
+}
+
 export default async (plugins, args, settings) => {
     let arePluginsArray = Array.isArray(plugins);
     let _plugins = arePluginsArray ? plugins : Object.values(plugins);
@@ -5,20 +32,17 @@ export default async (plugins, args, settings) => {
     let answers;
     let pluginsNames;
 
-    if (arePluginsArray) {
-        answers = [];
-    } else {
-        answers = {};
-        pluginsNames = Object.keys(plugins);
-    }
+    answers = [];
+
+    args.pluginsAnswers = answers;
 
     if (!settings.runParallel) {
         for (let i=0, length=_plugins.length; i < length; ++i) {
+            console.log(`Doing plugin ${i+1}/${length}`);
             try {
-                const answer = await _plugins[i](...args);
+                const answer = await _plugins[i](constructPluginObjectArgument(_plugins[i], args));
 
-                if (arePluginsArray) answers.push(answer);
-                else                 answers[pluginsNames[i]] = answer;
+                answers.push(answer);
             } catch (error) {
                 if (settings.onError) {
                     if (settings.onError.crashImmediatly) {
@@ -28,7 +52,7 @@ export default async (plugins, args, settings) => {
                             }
                         }
 
-                        throw settings.throw;
+                        throw error;
                     }
                 }
             }
