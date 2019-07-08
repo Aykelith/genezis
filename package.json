@@ -1,6 +1,6 @@
 {
-  "name": "genezis",
-  "version": "0.0.1",
+  "name": "@genezis/genezis",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {

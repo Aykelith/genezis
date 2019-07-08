@@ -1,6 +1,6 @@
-import GenezisChecker from "genezis/Checker";
-import deleteOnProduction from "genezis/utils/deleteOnProduction";
-import doPlugins from "genezis/utils/doPlugins";
+import GenezisChecker from "../Checker";
+import deleteOnProduction from "./deleteOnProduction";
+import doPlugins from "./doPlugins";
 
 const GenezisCheckConfig = deleteOnProduction({
     data: GenezisChecker.object(),
