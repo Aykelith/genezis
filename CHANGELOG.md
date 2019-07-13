@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.07.2019
+
+- added `sleep` function in `utils`;
+
 ## 24.06.2019
 
 - added a functionality to `utils/doPlugins` being able to send only the required arguments to the plugins and throws an
