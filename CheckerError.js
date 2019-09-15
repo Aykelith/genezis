@@ -1,5 +1,5 @@
 export default class extends Error {
-    constructor(type, property, value, originalError) {
+    constructor(type, property, value, originalError, additionalData) {
         super(`genezis/CheckerError of type ${type} on "${property}":"${value}"`);
 
         this.name = this.constructor.name;
@@ -8,6 +8,7 @@ export default class extends Error {
         this.property = property;
         this.value = value;
         this.originalError = originalError;
+        this.additionalData = additionalData;
 
         Error.captureStackTrace(this, this.constructor);
     }

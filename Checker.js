@@ -208,7 +208,7 @@ export function createGenerateOptions(additionalRules) {
             // }])),
             instanceOf: (instance) => generateOptions(previousChecks.concat([(property, value) => {
                 if (value === undefined) return;
-                if (!instance) throw new Error();
+                if (!instance) throw new Error(`For option "instanceOf" of property "${property}" is missing the instance`);
                 if (!(value instanceof instance)) throw new CheckerError(CheckerErrorTypes.NOT_INSTANCEOF, property, value);
             }])),
             oneOf: (options) => generateOptions(previousChecks.concat([(property, value) => {
@@ -275,7 +275,10 @@ export function createChecker(options) {
                 settings[property]._.forEach(checker => checker(property, config[property], config, checkerSettings));
             });
         } catch (error) {
-            console.error(error);
+            if (checkerSettings.globalErrorAdditionalData) {
+                error.additionalData = checkerSettings.globalErrorAdditionalData;
+            }
+            
             throw error;
         }
     };
