@@ -1,9 +1,13 @@
 # CHANGELOG
 
+## 30.09.2019
+
+- removed PluginError because not used;
+
 ## 14.09.2019
 
 - added a new argument to `CheckerError`: `additionalData` where can be specified more data about that error;
-- added a new property to the `checkerSettings` argument of `Checker`: `globalErrorAdditionalData` where can be 
+- added a new property to the `checkerSettings` argument of `Checker`: `globalErrorAdditionalData` where can be
 specified data to be added to every error thrown by `Checker`;
 
 ## 13.07.2019

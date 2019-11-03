@@ -61,15 +61,3 @@ export default async (plugins, args, settings) => {
 
     return answers;
 };
-
-export class PluginError extends Error {
-    constructor(message, originalError) {
-        super(message);
-
-        this.name = this.constructor.name;
-
-        this.originalError = originalError;
-
-        Error.captureStackTrace(this, this.constructor);
-    }
-}

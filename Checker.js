@@ -267,8 +267,8 @@ export function createGenerateOptions(additionalRules) {
 
 export function createChecker(options) {
     let checker = (config, settings, checkerSettings = {}) => {
-        if (!config) throw new Error();
-        if (!settings) throw new Error();
+        if (config == null) throw new Error();
+        if (settings == null) throw new Error();
 
         try {
             Object.keys(settings).forEach(property => {
