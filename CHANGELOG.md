@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.8
+
+- even more clear error on `Checker` when fails on the `shape` of an `object`.
+
 ## 0.0.7
 
 - more clear error on `Checker` when fails on the `shape` of an `object`.

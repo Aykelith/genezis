@@ -174,8 +174,7 @@ export function createGenerateOptions(additionalRules) {
                         try {
                             settings.shape[subproperty]._.forEach(checker => checker(subproperty, value[subproperty], value, checkerSettings));
                         } catch (error) {
-                            error.property = `${property}[${subproperty}]`;
-                            throw error;
+                            throw new CheckerError(error.type, `${property}[${subproperty}]`, error.value);
                         }
                     });
                 }
