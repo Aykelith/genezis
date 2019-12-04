@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.9100
+
+- exported for ES5 into the folder `_es5`
+
 ## 0.0.8 & 0.0.9
 
 - even more clear error on `Checker` when fails on the `shape` of an `object`.
