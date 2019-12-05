@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.0.9102
+## 0.0.912
 
 - created separate module for ES5
 
