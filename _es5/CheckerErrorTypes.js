@@ -1,4 +1,10 @@
-export default {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+var _default = {
   NOT_STRING: "genezis_not_string",
   NOT_INTEGER: "genezis_not_integer",
   NOT_NUMBER: "genezis_not_number",
@@ -16,3 +22,4 @@ export default {
   ALL_MISSING: "genezis_all_missing",
   NONE_AVAILABLE: "genezis_none_available"
 };
+exports["default"] = _default;
