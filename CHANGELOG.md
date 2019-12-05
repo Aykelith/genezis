@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.9102
+
+- created separate module for ES5
+
 ## 0.0.9100
 
 - exported for ES5 into the folder `_es5`
