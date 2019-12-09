@@ -3,8 +3,8 @@ import GenezisGeneralError from "./GenezisGeneralError";
 export default class extends GenezisGeneralError {
     constructor(type, property, value, originalError, additionalData) {
         super(
+            type,
             {
-                type,
                 property,
                 value,
                 additionalData
