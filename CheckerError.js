@@ -1,15 +1,19 @@
-export default class extends Error {
+import GenezisGeneralError from "./GenezisGeneralError";
+
+export default class extends GenezisGeneralError {
     constructor(type, property, value, originalError, additionalData) {
-        super(`genezis/CheckerError of type ${type} on "${property}":"${value}"`);
+        super(
+            {
+                type,
+                property,
+                value,
+                additionalData
+            },
+            originalError, 
+            `genezis/CheckerError of type ${type} on "${property}":"${value}"`
+        );
 
         this.name = this.constructor.name;
-
-        this.type = type;
-        this.property = property;
-        this.value = value;
-        this.originalError = originalError;
-        this.additionalData = additionalData;
-
         Error.captureStackTrace(this, this.constructor);
     }
 }

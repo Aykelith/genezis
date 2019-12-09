@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.913
+
+- added a new error class called `GenezisGeneralError` for using in all cases;
+- changed the base class of the error class `CheckerError` to `GenezisGeneralError`.
+
 ## 0.0.912
 
 - created separate module for ES5
