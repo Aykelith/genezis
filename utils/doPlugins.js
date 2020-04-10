@@ -13,7 +13,18 @@ function constructPluginObjectArgument(plugin, args) {
         if (!plugin[PLUGIN_ARGS_REQUIREMENTS_KEYWORD]) throw new Error(`The plugin "${plugin.name}" doesn't have the "${PLUGIN_ARGS_REQUIREMENTS_KEYWORD}"`);
 
         plugin[PLUGIN_ARGS_REQUIREMENTS_KEYWORD].forEach(requirement => {
-            if (args[requirement] === undefined) throw new Error(`The requirement "${requirement}" of plugin "${plugin.name}" is not given in the plugin arguments`);
+            let requirementName, options = {};
+            if (typeof requirement === "string") requirementName = requirement;
+            else {
+                requirementName = requirement.name;
+                options = requirement;
+            }
+            
+            if (args[requirement] === undefined) {
+                if (options.skipIfFail) return; 
+
+                throw new Error(`The requirement "${requirement}" of plugin "${plugin.name}" is not given in the plugin arguments`);
+            }
         });
     }
 
