@@ -30,7 +30,8 @@ function constructPluginObjectArgument(plugin, args) {
 
     let pluginArgs = {};
     plugin[PLUGIN_ARGS_REQUIREMENTS_KEYWORD].forEach(requirement => {
-        pluginArgs[requirement] = args[typeof requirement === "string" ? requirement : requirement.name];
+		const field = typeof requirement === "string" ? requirement : requirement.name;
+        pluginArgs[field] = args[field];
     });
 
     return pluginArgs;
