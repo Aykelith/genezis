@@ -21,7 +21,7 @@ function constructPluginObjectArgument(plugin, args) {
             }
             
             if (args[requirementName] === undefined) {
-                if (options.skipIfFail) return;
+                if (options.skipIfFail/*deprecated*/ || options.canBeNull) return;
                 if (options.requiredIf) {
                     let fail = false;
                     
