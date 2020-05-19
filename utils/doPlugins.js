@@ -20,8 +20,20 @@ function constructPluginObjectArgument(plugin, args) {
                 options = requirement;
             }
             
-            if (args[requirement] === undefined) {
-                if (options.skipIfFail) return; 
+            if (args[requirementName] === undefined) {
+                if (options.skipIfFail) return;
+                if (options.requiredIf) {
+                    let fail = false;
+                    
+                    for (const key in options.requiredIf) {
+                        if (args[key] === options.requiredIf[key]) {
+                            fail = true;
+                            break;
+                        }
+                    }
+
+                    if (!fail) return;
+                } 
 
                 throw new Error(`The requirement "${requirement}" of plugin "${plugin.name}" is not given in the plugin arguments`);
             }
