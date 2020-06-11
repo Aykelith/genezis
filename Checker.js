@@ -259,6 +259,9 @@ export function createGenerateOptions(additionalRules) {
 
             any: () => generateOptions(previousChecks.concat([() => {}])),
             ignore: () => generateOptions(previousChecks.concat([() => {}])),
+            custom: (func) => generateOptions(previousChecks.concat([(property, value, config) => {
+                func(property, value, config);
+            }])),
 
             ...(additionalRules ? additionalRules(generateOptions, previousChecks) : {})
         };
